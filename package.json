@@ -1,0 +1,19 @@
+{
+  "name": "urban-air-quality-assistant",
+  "version": "1.0.0",
+  "description": "Turns live urban air quality into go / take care / avoid advice for your health profile and activity.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "coverage": "node --test --experimental-test-coverage",
+    "lint": "eslint .",
+    "check": "npm run lint && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0"
+  }
+}
