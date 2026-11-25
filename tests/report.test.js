@@ -25,9 +25,15 @@ test('report reflects persona and activity choices', () => {
 });
 
 test('report has no window when the requested duration is too long', () => {
-  assert.equal(buildReport(city, { personaId: 'general', activityId: 'rest', durationHours: 9 }).window, null);
+  assert.equal(
+    buildReport(city, { personaId: 'general', activityId: 'rest', durationHours: 9 }).window,
+    null,
+  );
 });
 
 test('report rejects invalid choices', () => {
-  assert.throws(() => buildReport(city, { personaId: 'x', activityId: 'rest', durationHours: 1 }), RangeError);
+  assert.throws(
+    () => buildReport(city, { personaId: 'x', activityId: 'rest', durationHours: 1 }),
+    RangeError,
+  );
 });

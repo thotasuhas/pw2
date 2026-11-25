@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CATEGORIES, MAX_AQI, PM10_BREAKPOINTS, PM25_BREAKPOINTS, aqiCategory, computeAqi, subIndex } from '../js/aqi.js';
+import {
+  CATEGORIES,
+  MAX_AQI,
+  PM10_BREAKPOINTS,
+  PM25_BREAKPOINTS,
+  aqiCategory,
+  computeAqi,
+  subIndex,
+} from '../js/aqi.js';
 
 test('every PM2.5 breakpoint edge maps to its AQI edge', () => {
   for (const [cLow, cHigh, iLow, iHigh] of PM25_BREAKPOINTS) {
@@ -51,9 +59,21 @@ test('invalid concentrations are rejected', () => {
 });
 
 test('category boundaries', () => {
-  const expected = [[0, 'Good'], [50, 'Good'], [51, 'Moderate'], [100, 'Moderate'], [101, 'Unhealthy for Sensitive Groups'],
-    [150, 'Unhealthy for Sensitive Groups'], [151, 'Unhealthy'], [200, 'Unhealthy'], [201, 'Very Unhealthy'], [300, 'Very Unhealthy'],
-    [301, 'Hazardous'], [500, 'Hazardous'], [999, 'Hazardous']];
+  const expected = [
+    [0, 'Good'],
+    [50, 'Good'],
+    [51, 'Moderate'],
+    [100, 'Moderate'],
+    [101, 'Unhealthy for Sensitive Groups'],
+    [150, 'Unhealthy for Sensitive Groups'],
+    [151, 'Unhealthy'],
+    [200, 'Unhealthy'],
+    [201, 'Very Unhealthy'],
+    [300, 'Very Unhealthy'],
+    [301, 'Hazardous'],
+    [500, 'Hazardous'],
+    [999, 'Hazardous'],
+  ];
   for (const [aqi, name] of expected) assert.equal(aqiCategory(aqi).name, name, `aqi ${aqi}`);
   assert.equal(new Set(CATEGORIES.map((c) => c.id)).size, CATEGORIES.length);
 });
