@@ -13,8 +13,13 @@
    - A sliding-window search finds the cleanest time to go out in the next 24 hours.
 4. **UI** (`app.py`, Streamlit): city, persona, activity, duration → advice, trend chart, and a data table.
 
+## Live demo
+https://thotasuhas.github.io/pw2/ (static HTML/JS port of the same logic, hosted on GitHub Pages)
+
 ## How to run
 ```bash
+# Web version: open index.html or visit the live demo above
+# Python/Streamlit version:
 pip install -r requirements.txt
 streamlit run app.py
 pytest

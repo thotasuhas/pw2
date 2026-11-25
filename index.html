@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://geocoding-api.open-meteo.com https://air-quality-api.open-meteo.com; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Urban Air Quality Assistant</title>
+<style>
+:root{--bg:#fff;--fg:#1a1f2b;--card:#f3f5f9;--bd:#8a94a6;--ok:#0b6b2e;--warn:#8a5a00;--bad:#a4161a;--acc:#1f4fb4}
+@media (prefers-color-scheme:dark){:root{--bg:#10141c;--fg:#eef1f6;--card:#1b212d;--bd:#7d889b;--ok:#6fdc8c;--warn:#ffc65c;--bad:#ff8b8e;--acc:#8db4ff}}
+body{font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg);max-width:680px;margin:0 auto;padding:1rem}
+label{display:block;margin-top:.9rem;font-weight:600}
+input,select,button{font:inherit;width:100%;padding:.6rem;margin-top:.25rem;border:2px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);box-sizing:border-box}
+button{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:700;margin-top:1.2rem;cursor:pointer}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.card{background:var(--card);border-radius:10px;padding:1rem;margin-top:1rem}
+.Go{color:var(--ok)}.Take{color:var(--warn)}.Avoid{color:var(--bad)}
+table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid var(--bd);padding:.3rem;text-align:left}
+.sr{position:absolute;left:-9999px}.note{font-size:.9rem;opacity:.85}
+.bars{display:flex;align-items:flex-end;gap:2px;height:90px}.bars span{flex:1;background:var(--acc);min-height:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>Urban Air Quality Assistant</h1>
+<p class="note">Personalised, plain-language guidance from live air-quality data. Not medical advice.</p>
+<form id="f">
+<label for="city">City</label><input id="city" value="Hyderabad" maxlength="80" autocomplete="off" required>
+<label for="persona">Who is this for?</label><select id="persona"></select>
+<label for="activity">Planned activity</label><select id="activity"></select>
+<label for="dur">Duration (hours)</label><select id="dur"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+<button type="submit">Get advice</button>
+</form>
+<div id="out" aria-live="polite"></div>
+</main>
+<script>
+"use strict";
+const PM25=[[0,9,0,50],[9.1,35.4,51,100],[35.5,55.4,101,150],[55.5,125.4,151,200],[125.5,225.4,201,300],[225.5,325.4,301,500]];
+const PM10=[[0,54,0,50],[55,154,51,100],[155,254,101,150],[255,354,151,200],[355,424,201,300],[425,604,301,500]];
+const CATS=[[50,"Good"],[100,"Moderate"],[150,"Unhealthy for Sensitive Groups"],[200,"Unhealthy"],[300,"Very Unhealthy"],[500,"Hazardous"]];
+const PERSONAS={"General adult":[100,200],"Child / older adult":[75,150],"Asthma / heart / lung condition":[50,125],"Outdoor worker / commuter":[100,175]};
+const ACT={"Resting / indoors":1,"Commute / walking":1.15,"Exercise outdoors":1.4};
+const sub=(c,t)=>{if(typeof c!=="number"||isNaN(c)||c<0)throw new Error("bad concentration");
+ if(c>t[t.length-1][1])return 500;for(const[l,h,il,ih]of t)if(c<=h){c=Math.max(c,l);return Math.round((ih-il)/(h-l)*(c-l)+il)}return 500};
+const aqi=(a,b)=>Math.max(sub(a,PM25),b==null?0:sub(b,PM10));
+const cat=a=>CATS.find(c=>a<=c[0])[1];
+function advise(a,p,act){const[caution,avoid]=PERSONAS[p],e=a*ACT[act];
+ if(e>=avoid)return{lvl:"Avoid",cls:"Avoid",icon:"⛔",head:"Avoid outdoor exposure right now.",acts:["Move activity indoors or postpone it.","Keep windows closed; use an air purifier if you have one.","If you must go out, wear a well-fitted N95/FFP2 mask.","Seek medical advice if you have breathing difficulty or chest tightness."]};
+ if(e>=caution)return{lvl:"Take care",cls:"Take",icon:"⚠️",head:"Reduce prolonged or intense outdoor activity.",acts:["Shorten outdoor time and keep exertion light.","Prefer parks or side streets away from heavy traffic.","Consider an N95/FFP2 mask for commutes.","Carry any prescribed medication."]};
+ return{lvl:"Go",cls:"Go",icon:"✅",head:"Air quality is acceptable for your plan.",acts:["Normal outdoor activity is fine.","Re-check later if conditions change."]}}
+function bestWindow(h,n){if(n<1||h.length<n)return null;let best=null;
+ for(let i=0;i<=h.length-n;i++){let s=0;for(let j=i;j<i+n;j++)s+=h[j][1];const avg=s/n;if(!best||avg<best[1])best=[h[i][0],Math.round(avg)]}return best}
+const cleanQuery=q=>{q=q.trim().replace(/\s+/g," ");if(q.length<2||q.length>80||!/^[\p{L}\p{N} .,'-]+$/u.test(q))throw new Error("Enter a city name (2-80 letters, numbers, spaces, . , ' -).");return q};
+async function getJSON(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);
+ try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error("Service error "+r.status);return await r.json()}finally{clearTimeout(t)}}
+async function fetchCity(q){q=cleanQuery(q);
+ const g=await getJSON("https://geocoding-api.open-meteo.com/v1/search?count=1&name="+encodeURIComponent(q));
+ if(!g.results||!g.results.length)throw new Error("No place found for '"+q+"'.");
+ const r=g.results[0];
+ const a=await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${r.latitude}&longitude=${r.longitude}&hourly=pm2_5,pm10&forecast_days=2&timezone=auto`);
+ const h=a.hourly,hours=[];
+ h.time.forEach((t,i)=>{if(h.pm2_5[i]!=null)hours.push([t.slice(5,16).replace("T"," "),aqi(h.pm2_5[i],h.pm10[i])])});
+ if(!hours.length)throw new Error("No air quality data available for this place.");
+ return{place:r.name+(r.country?", "+r.country:""),hours:hours.slice(0,48)}}
+const $=id=>document.getElementById(id);
+for(const k of Object.keys(PERSONAS))$("persona").add(new Option(k,k));
+for(const k of Object.keys(ACT))$("activity").add(new Option(k,k));
+const el=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e};
+const cache=new Map();
+$("f").addEventListener("submit",async ev=>{ev.preventDefault();const out=$("out");out.replaceChildren(el("p","Fetching air quality…"));
+ try{const q=cleanQuery($("city").value);let d=cache.get(q.toLowerCase());
+  if(!d||Date.now()-d.t>9e5){d={t:Date.now(),v:await fetchCity(q)};cache.set(q.toLowerCase(),d)}
+  const data=d.v,now=data.hours[0][1],adv=advise(now,$("persona").value,$("activity").value);
+  const card=el("section",null,"card");card.append(el("h2",data.place));
+  card.append(el("p","Current AQI: "+now+" ("+cat(now)+")"));
+  const h3=el("h3",adv.icon+" "+adv.lvl+": "+adv.head,adv.cls);card.append(h3);
+  const ul=el("ul");adv.acts.forEach(a=>ul.append(el("li",a)));card.append(ul);
+  const w=bestWindow(data.hours.slice(0,24),+$("dur").value);
+  if(w)card.append(el("p","Cleanest "+$("dur").value+"-hour window in the next 24 h starts at "+w[0]+" (average AQI "+w[1]+")."));
+  const day=data.hours.slice(0,24),max=Math.max(...day.map(x=>x[1]),1),bars=el("div",null,"bars");
+  bars.setAttribute("role","img");bars.setAttribute("aria-label","Bar chart of hourly AQI for the next 24 hours; see the table below.");
+  day.forEach(x=>{const s=el("span");s.style.height=(x[1]/max*100)+"%";s.title=x[0]+": AQI "+x[1];bars.append(s)});card.append(bars);
+  const det=el("details");det.append(el("summary","Hourly data table"));const tb=el("table");
+  const hr=el("tr");["Time","AQI"].forEach(t=>hr.append(el("th",t)));tb.append(hr);
+  day.forEach(x=>{const r=el("tr");r.append(el("td",x[0]),el("td",String(x[1])));tb.append(r)});det.append(tb);card.append(det);
+  out.replaceChildren(card)}
+ catch(e){const p=el("p",e.name==="AbortError"?"Request timed out. Please try again.":e.message,"Avoid");p.setAttribute("role","alert");out.replaceChildren(p)}});
+</script>
+</body>
+</html>
