@@ -1,54 +1,78 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Live urban air quality turned into a clear go / take care / avoid decision for your health profile and planned activity.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src https://geocoding-api.open-meteo.com https://air-quality-api.open-meteo.com; base-uri 'none'; form-action 'none'">
-  <title>Urban Air Quality Assistant</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E🌫️%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css">
-  <script type="module" src="js/main.js"></script>
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to main content</a>
-  <header class="container">
-    <h1>Urban Air Quality Assistant</h1>
-    <p>Live air quality turned into a clear decision for you and your plans.</p>
-  </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="Live urban air quality turned into a clear go / take care / avoid decision for your health profile and planned activity."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src https://geocoding-api.open-meteo.com https://air-quality-api.open-meteo.com; base-uri 'none'; form-action 'none'"
+    />
+    <title>Urban Air Quality Assistant</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E🌫️%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="container">
+      <h1>Urban Air Quality Assistant</h1>
+      <p>Live air quality turned into a clear decision for you and your plans.</p>
+    </header>
 
-  <main id="main" class="container">
-    <noscript><p class="notice">This assistant needs JavaScript to load live air quality data.</p></noscript>
+    <main id="main" class="container">
+      <noscript
+        ><p class="notice">This assistant needs JavaScript to load live air quality data.</p></noscript
+      >
 
-    <form id="search-form" novalidate>
-      <div class="field">
-        <label for="city">City</label>
-        <input id="city" name="city" type="text" value="Hyderabad" maxlength="80" autocomplete="off" required aria-describedby="city-hint city-error">
-        <p id="city-hint" class="hint">For example: Hyderabad, Delhi or London.</p>
-        <p id="city-error" class="error" role="alert" hidden></p>
-      </div>
-      <div class="field">
-        <label for="persona">Who is this for?</label>
-        <select id="persona" name="persona"></select>
-      </div>
-      <div class="field">
-        <label for="activity">Planned activity</label>
-        <select id="activity" name="activity"></select>
-      </div>
-      <div class="field">
-        <label for="duration">How long will you be outside?</label>
-        <select id="duration" name="duration"></select>
-      </div>
-      <button type="submit">Get advice</button>
-    </form>
+      <form id="search-form" novalidate>
+        <div class="field">
+          <label for="city">City</label>
+          <input
+            id="city"
+            name="city"
+            type="text"
+            value="Hyderabad"
+            maxlength="80"
+            autocomplete="off"
+            required
+            aria-describedby="city-hint city-error"
+          />
+          <p id="city-hint" class="hint">For example: Hyderabad, Delhi or London.</p>
+          <p id="city-error" class="error" role="alert" hidden></p>
+        </div>
+        <div class="field">
+          <label for="persona">Who is this for?</label>
+          <select id="persona" name="persona"></select>
+        </div>
+        <div class="field">
+          <label for="activity">Planned activity</label>
+          <select id="activity" name="activity"></select>
+        </div>
+        <div class="field">
+          <label for="duration">How long will you be outside?</label>
+          <select id="duration" name="duration"></select>
+        </div>
+        <button type="submit">Get advice</button>
+      </form>
 
-    <p id="status" role="status" class="hint"></p>
-    <section id="results" aria-labelledby="results-heading" hidden></section>
-  </main>
+      <p id="status" role="status" class="hint"></p>
+      <section id="results" aria-labelledby="results-heading" hidden></section>
+    </main>
 
-  <footer class="container">
-    <p class="hint">General guidance only, not medical advice. Data: <a href="https://open-meteo.com/">Open-Meteo</a> (modelled estimates). AQI uses US EPA 2024 PM2.5 and PM10 breakpoints.</p>
-  </footer>
-</body>
+    <footer class="container">
+      <p class="hint">
+        General guidance only, not medical advice. Data:
+        <a href="https://open-meteo.com/">Open-Meteo</a> (modelled estimates). AQI uses US EPA 2024 PM2.5 and
+        PM10 breakpoints.
+      </p>
+    </footer>
+  </body>
 </html>

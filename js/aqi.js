@@ -7,14 +7,22 @@
 
 /** @type {readonly Breakpoint[]} PM2.5 in ug/m3, truncated to 0.1 */
 export const PM25_BREAKPOINTS = Object.freeze([
-  [0, 9.0, 0, 50], [9.1, 35.4, 51, 100], [35.5, 55.4, 101, 150],
-  [55.5, 125.4, 151, 200], [125.5, 225.4, 201, 300], [225.5, 325.4, 301, 500],
+  [0, 9.0, 0, 50],
+  [9.1, 35.4, 51, 100],
+  [35.5, 55.4, 101, 150],
+  [55.5, 125.4, 151, 200],
+  [125.5, 225.4, 201, 300],
+  [225.5, 325.4, 301, 500],
 ]);
 
 /** @type {readonly Breakpoint[]} PM10 in ug/m3, truncated to an integer */
 export const PM10_BREAKPOINTS = Object.freeze([
-  [0, 54, 0, 50], [55, 154, 51, 100], [155, 254, 101, 150],
-  [255, 354, 151, 200], [355, 424, 201, 300], [425, 604, 301, 500],
+  [0, 54, 0, 50],
+  [55, 154, 51, 100],
+  [155, 254, 101, 150],
+  [255, 354, 151, 200],
+  [355, 424, 201, 300],
+  [425, 604, 301, 500],
 ]);
 
 export const MAX_AQI = 500;
@@ -43,7 +51,7 @@ export function subIndex(concentration, breakpoints, decimals) {
   const c = Math.floor(concentration * scale + 1e-9) / scale;
   const top = breakpoints[breakpoints.length - 1];
   if (c > top[1]) return MAX_AQI;
-  const [cLow, cHigh, iLow, iHigh] = breakpoints.find((b) => c <= b[1]);
+  const [cLow, cHigh, iLow, iHigh] = breakpoints.find((band) => c <= band[1]) ?? top;
   return Math.round(((iHigh - iLow) / (cHigh - cLow)) * (Math.max(c, cLow) - cLow) + iLow);
 }
 

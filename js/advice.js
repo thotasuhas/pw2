@@ -3,6 +3,10 @@
  * Thresholds are applied to an "effective AQI" that grows with exertion.
  */
 
+/** @typedef {{label: string, caution: number, avoid: number}} Persona */
+/** @typedef {{label: string, factor: number}} Activity */
+
+/** @type {Readonly<Record<string, Persona>>} */
 export const PERSONAS = Object.freeze({
   general: { label: 'General adult', caution: 100, avoid: 200 },
   vulnerable: { label: 'Child or older adult', caution: 75, avoid: 150 },
@@ -11,6 +15,7 @@ export const PERSONAS = Object.freeze({
 });
 
 /** Multiplier models the higher inhaled dose when breathing harder. */
+/** @type {Readonly<Record<string, Activity>>} */
 export const ACTIVITIES = Object.freeze({
   rest: { label: 'Resting or indoors', factor: 1 },
   commute: { label: 'Commuting or walking', factor: 1.15 },
@@ -77,10 +82,11 @@ export function advise(aqi, personaId, activityId) {
  */
 export function bestWindow(hours, length) {
   if (!Number.isInteger(length) || length < 1 || hours.length < length) return null;
-  let best = null;
-  for (let i = 0; i + length <= hours.length; i += 1) {
-    const sum = hours.slice(i, i + length).reduce((total, h) => total + h.aqi, 0);
-    if (best === null || sum < best.sum) best = { sum, startLabel: hours[i].label };
+  let sum = hours.slice(0, length).reduce((total, hour) => total + hour.aqi, 0);
+  let best = { sum, start: 0 };
+  for (let i = 1; i + length <= hours.length; i += 1) {
+    sum += hours[i + length - 1].aqi - hours[i - 1].aqi; // slide the window by one hour
+    if (sum < best.sum) best = { sum, start: i };
   }
-  return { startLabel: best.startLabel, averageAqi: Math.round(best.sum / length) };
+  return { startLabel: hours[best.start].label, averageAqi: Math.round(best.sum / length) };
 }
