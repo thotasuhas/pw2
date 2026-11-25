@@ -35,6 +35,7 @@ flowchart LR
 | `js/report.js` | Combines data and choices into a display-ready report |
 | `js/main.js` | Form handling and safe rendering |
 | `tests/` | Unit tests for every module (Node's built-in test runner) |
+| `.github/workflows/ci.yml` | Lint and tests on Node 20 and 22 for every push |
 
 ## Run, test, lint
 
